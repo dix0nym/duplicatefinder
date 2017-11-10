@@ -49,7 +49,7 @@ int walk(const char *const dirpath){
     return 0;
 }
 int main(int argc, char **argv) {
-    char *dirpath = "/home/rias/Downloads/";
+    char *dirpath = "/home/nyx/music/";
     walk(dirpath);
     remove_uniques();
     dump();
