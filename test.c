@@ -1,13 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
-#include <errno.h>
-
-#include <ctype.h>
-#include <unistd.h>
-#include <getopt.h>
-#include <stdbool.h>
 
 #include "blake2/blake2.h"
 
@@ -135,12 +128,12 @@ int main( int argc, char **argv )
   f = fopen( path, "rb" );
   
   if( !f ) {
-    fprintf( stderr, "Could not open `%s': %s\n", path, strerror( errno ) );
+    printf("Could not open %s\n", path);
     exit(EXIT_FAILURE);
   }
   
   if( blake2_stream( f, hash, maxbytes ) < 0 ) {
-    fprintf( stderr, "Failed to hash `%s'\n", path);
+    printf("Failed to hash `%s'\n", path);
   } else {
     size_t j;
     for( j = 0; j < maxbytes; ++j )

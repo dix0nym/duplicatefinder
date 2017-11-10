@@ -2,8 +2,36 @@
 #include <stdlib.h>
 #include <string.h>
 #include "filelist.h"
+#include "blake2helper.h"
 
 static filelist *head;
+
+
+int check_duplicate(filelist *item)
+{
+    file **files = current->files;
+    typedef struct tmp {
+        unsigned char *hash;
+        int power;
+    } tmp;
+}
+
+int create_hashtable(void)
+{
+    if (!head)
+        return -1;
+    remove_uniques();
+    filelist *current = head;
+    
+    while(current){
+        file **files = current->files;
+        for(int i = 0;i < current->idx; i++){
+            files[i]->hash = create_hash(files[i]->path);
+        }
+        current = current->next;
+    }
+    return 0;
+}
 
 filelist *lookup(long *size)
 {
@@ -41,16 +69,29 @@ filelist *create_item(long *filesize, char *buf)
     }
     new->filesize = filesize;
     new->next = NULL;
-    char **files = malloc(1 * sizeof(char *));
+    file **files = malloc(sizeof(file *));
+    if(!files) {
+        perror("malloc");
+        exit(EXIT_FAILURE);
+    }
+    file *item = malloc(sizeof(file));
+    if(!item) {
+        perror("malloc");
+        exit(EXIT_FAILURE);
+    }
+    item->path = buf;
+    item->hash = NULL;
+    //char **files = malloc(1 * sizeof(char *));
     if(!files) {
         perror("malloc");
         exit(EXIT_FAILURE);
     }
     new->files = files;
-    new->files[0] = buf;
+    new->files[0] = item;
     new->idx = 1;
     return new;
 }
+
 
 int add(long *filesize, char *path)
 {
@@ -68,13 +109,20 @@ int add(long *filesize, char *path)
         current->next = create_item(filesize, path);
     } else {
         int idx = np->idx;
-        char **tmp = realloc(np->files, (idx+ 1) * sizeof(char *));
+        file **tmp = realloc(np->files, (idx+ 1) * sizeof(file *));
         if (!tmp) {
             perror("realloc");
             exit(EXIT_FAILURE);
         }
+        file *item = malloc(sizeof(file *));
+        if (!item) {
+            perror("realloc");
+            exit(EXIT_FAILURE);
+        }
+        item->path = path;
+        item->hash = NULL;
         np->files = tmp;
-        np->files[idx] = path;
+        np->files[idx] = item;
         np->idx = idx+1;
     }
     return 0;
@@ -151,8 +199,16 @@ int dump(void)
         else
             printf("has no next\n");
         
-        for(int i = 0; i < current->idx;i++)
-            printf("\t%d : %s\n", i, current->files[i]);
+        for(int i = 0; i < current->idx;i++) {
+            printf("\t%d : %s - hash: ", i, current->files[i]->path);
+            if(current->files[i]->hash) {
+                for(size_t j = 0; j < 64; ++j )
+                    printf( "%02x", current->files[i]->hash[j] );
+            } else {
+                printf("null");
+            }
+            printf("\n");
+        }
         c += 1;
         current = current->next;
     }
@@ -168,9 +224,16 @@ int dump_filelist(filelist *item)
         printf("has next\n");
     else
         printf("has no next\n");
-    for(int i = 0; i < item->idx; i++) {
-        printf("\t%d : %s\n", i, item->files[i]);
-    }
+    for(int i = 0; i < item->idx;i++) {
+            printf("\t%d : %s - hash: ", i, item->files[i]->path);
+            if(item->files[i]->hash) {
+                for(size_t j = 0; j < 64; ++j )
+                    printf( "%02x", item->files[i]->hash[j] );
+            } else {
+                printf("null");
+            }
+            printf("\n");
+        }
     printf("\n");
     return 0;
 }
