@@ -4,13 +4,11 @@
 #define _FILE_OFFSET_BITS 64 
 
 #include <stdlib.h>
-#include <unistd.h>
+//#include <unistd.h>
 #include <ftw.h>
-#include <time.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
-#include <ftw.h>
 #include "filelist.h"
 
 #ifndef USE_FDS
