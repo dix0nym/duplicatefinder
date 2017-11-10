@@ -18,7 +18,6 @@
 int addtodict(const char *filepath, const struct stat *info,
     const int typeflag, struct FTW *pathinfo)
 {
-    
     if(typeflag == FTW_F) {
         long *size = malloc(sizeof(long));
         if(!size){
@@ -49,9 +48,9 @@ int walk(const char *const dirpath){
     return 0;
 }
 int main(int argc, char **argv) {
-    char *dirpath = "/home/rias/Downloads/";
+    char *dirpath = "/home/nyx/Documents/";
     walk(dirpath);
-    remove_uniques();
+    create_hashtable();
     dump();
     destroy();
     return 0;
