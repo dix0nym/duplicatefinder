@@ -1,18 +1,21 @@
 #ifndef FILELIST_H_
 #define FILELIST_H_
-#include "blake2/blake2.h"
 
 typedef struct file {
     char* path;
-    unsigned char hash[BLAKE2B_OUTBYTES];
+    unsigned char *hash;
 } file;
 
 typedef struct filelist {
     long *filesize;
     int idx;
-    char **files;
+    struct file **files;
     struct filelist *next;
 } filelist;
+
+int blake2b_stream( FILE *stream, void *resstream, size_t outbytes );
+
+unsigned char *create_hash(char *path);
 
 int add(long *filesize, char *path);
 
@@ -21,6 +24,8 @@ int destroy(void);
 filelist *lookup(long *filesize);
 
 filelist *create_item(long *filesize, char *buf);
+
+int create_hashtable(void);
 
 int remove_uniques(void);
 
