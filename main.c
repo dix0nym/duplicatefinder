@@ -35,7 +35,7 @@ int addtodict(const char *filepath, const struct stat *info,
             exit(EXIT_FAILURE);
         }
         strncpy(path, filepath, strlen(filepath)+1);
-        add(size, path);
+        filelist_add(size, path);
     }
     return 0;
 }
@@ -50,8 +50,9 @@ int walk(const char *const dirpath){
 int main(int argc, char **argv) {
     char *dirpath = "/home/nyx/Documents/";
     walk(dirpath);
-    create_hashtable();
-    dump();
-    destroy();
+    //create_hashtable();
+    filelist_dump();
+    check_duplicate();
+    filelist_destroy();
     return 0;
 }

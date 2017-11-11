@@ -9,30 +9,20 @@ typedef struct file {
 typedef struct filelist {
     long *filesize;
     int idx;
-    struct file **files;
+    char **files;
     struct filelist *next;
 } filelist;
 
-int blake2b_stream( FILE *stream, void *resstream, size_t outbytes );
+int filelist_add(long *filesize, char *path);
 
-unsigned char *create_hash(char *path);
+int filelist_destroy(void);
 
-int add(long *filesize, char *path);
+int filelist_remove_uniques(void);
 
-int destroy(void);
+int check_duplicate(void);
 
-filelist *lookup(long *filesize);
+int filelist_dump(void);
 
-filelist *create_item(long *filesize, char *buf);
-
-int create_hashtable(void);
-
-int remove_uniques(void);
-
-filelist *delete_item(filelist *item);
-
-int dump(void);
-
-int dump_filelist(filelist *item);
+filelist *get_filelist(void);
 
 #endif
