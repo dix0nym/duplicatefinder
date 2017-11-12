@@ -3,8 +3,8 @@
 
 typedef struct hashitem {
     unsigned char *hash;
-    char **files;
     int idx;
+    char **files;
     struct hashitem *next;
 } hashitem;
 

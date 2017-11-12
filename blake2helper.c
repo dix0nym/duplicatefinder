@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-
 #include "blake2/blake2.h"
 
 int blake2b_stream( FILE *stream, void *resstream, size_t outbytes )
@@ -15,9 +14,11 @@ int blake2b_stream( FILE *stream, void *resstream, size_t outbytes )
 
     blake2b_init( S, outbytes );
 
-    while( 1 ){
+    while(1)
+    {
         sum = 0;
-        while( 1 ) {
+        while(1)
+        {
             n = fread( buffer + sum, 1, buffer_length - sum, stream );
             sum += n;
 
@@ -27,15 +28,14 @@ int blake2b_stream( FILE *stream, void *resstream, size_t outbytes )
             if( 0 == n )
             {
                 if( ferror( stream ) )
-                goto cleanup_buffer;
+                    goto cleanup_buffer;
 
                 goto final_process;
             }
 
             if( feof( stream ) )
                 goto final_process;
-            }
-    
+        }
         blake2b_update( S, buffer, buffer_length );
     }
 
@@ -52,22 +52,20 @@ unsigned char *create_hash(char *path)
 {
     unsigned long maxbytes = BLAKE2B_OUTBYTES;
     //unsigned char hash[BLAKE2B_OUTBYTES] = {0};
-    unsigned char *hash = malloc(BLAKE2B_OUTBYTES * sizeof(unsigned char));
+    unsigned char *hash = malloc((maxbytes+1) * sizeof(unsigned char));
     if(!hash) {
         perror("malloc");
         exit(EXIT_FAILURE);
     }
-    FILE *f = NULL;
-    f = fopen( path, "rb" );
+    FILE *f = fopen( path, "rb" );
   
     if( !f ) {
         printf("Could not open '%s'\n", path);
         exit(EXIT_FAILURE);
     }
   
-    if( blake2b_stream( f, hash, maxbytes ) < 0 ) {
+    if( blake2b_stream( f, hash, maxbytes ) < 0 )
         printf("Failed to hash '%s'\n", path);
-    }
     fclose( f );
     return hash;
 }

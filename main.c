@@ -3,10 +3,9 @@
 #define _LARGEFILE64_SOURCE
 #define _FILE_OFFSET_BITS 64 
 
-#include <stdlib.h>
-//#include <unistd.h>
 #include <ftw.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 #include "filelist.h"
@@ -27,14 +26,13 @@ int addtodict(const char *filepath, const struct stat *info,
         struct stat st;
         stat(filepath, &st);
         *size = st.st_size;
-        //printf("%d - %s\n", *size, filepath);
 
         char *path = malloc(sizeof(char)*(strlen(filepath) + 1));
         if(!path){
             perror("malloc");
             exit(EXIT_FAILURE);
         }
-        strncpy(path, filepath, strlen(filepath)+1);
+        strncpy(path, filepath, strlen(filepath) + 1);
         filelist_add(size, path);
     }
     return 0;
@@ -50,8 +48,6 @@ int walk(const char *const dirpath){
 int main(int argc, char **argv) {
     char *dirpath = "/home/nyx/Documents/";
     walk(dirpath);
-    //create_hashtable();
-    filelist_dump();
     check_duplicate();
     filelist_destroy();
     return 0;

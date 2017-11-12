@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include "filelist.h"
 #include "hashtable.h"
 
@@ -17,23 +18,10 @@ filelist *create_item(long *filesize, char *buf)
     new->next = NULL;
     char **files = malloc(sizeof(char *));
     
-    //file **files = malloc(sizeof(file *));
     if(!files) {
         perror("malloc");
         exit(EXIT_FAILURE);
     }
-    // file *item = malloc(sizeof(file));
-    // if(!item) {
-    //     perror("malloc");
-    //     exit(EXIT_FAILURE);
-    // }
-    // item->path = buf;
-    // item->hash = NULL;
-    //char **files = malloc(1 * sizeof(char *));
-    // if(!files) {
-    //     perror("malloc");
-    //     exit(EXIT_FAILURE);
-    // }
     new->files = files;
     new->files[0] = buf;
     new->idx = 1;
@@ -75,13 +63,6 @@ int filelist_add(long *filesize, char *path)
             perror("realloc");
             exit(EXIT_FAILURE);
         }
-        // file *item = malloc(sizeof(file *));
-        // if (!item) {
-        //     perror("realloc");
-        //     exit(EXIT_FAILURE);
-        // }
-        // item->path = path;
-        // item->hash = NULL;
         np->files = tmp;
         np->files[idx] = path;
         np->idx = idx+1;
@@ -148,14 +129,32 @@ int check_duplicate(void)
     if(!head)
         return -1;
     remove_uniques();
+    filelist_dump();
     filelist *current = head;
+    if (access("log.txt", F_OK) != -1)
+        remove("log.txt");
+    FILE *file = fopen("log.txt", "a");
+    if (!file)
+        perror("file");
     while(current)
     {
         hashtable_add_files(current->files, current->idx);
-        hashtable_get_duplicates();
+        hashitem *item = hashtable_get_duplicates();
+        while(item)
+        {
+            fprintf(file, "(*) hash: ");
+            for(size_t j = 0; j < 64; ++j )
+                fprintf(file, "%02x", item->hash[j]);
+            fprintf(file, " - files: %d\n", item->idx);
+            for(int i = 0; i < item->idx; i++)
+                fprintf(file, "\t[%d] - %s\n", i, item->files[i]);
+            fprintf(file, "\n");
+            item = item->next;
+        }
         hashtable_destroy();
         current = current->next;
     }
+    fclose(file);
     return 0;
 }
 

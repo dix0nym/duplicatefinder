@@ -1,11 +1,6 @@
 #ifndef FILELIST_H_
 #define FILELIST_H_
 
-typedef struct file {
-    char* path;
-    unsigned char *hash;
-} file;
-
 typedef struct filelist {
     long *filesize;
     int idx;

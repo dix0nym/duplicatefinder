@@ -5,24 +5,23 @@
 
 static hashitem *head;
 
-hashitem *create_hashitem(char *path)
+hashitem *create_hashitem(char *path, unsigned char *hash)
 {
-    hashitem *item = malloc(sizeof(hashitem *));
+    hashitem *item = malloc(1 * sizeof(hashitem));
     if (!item)
     {
         perror("malloc");
         exit(EXIT_FAILURE);
     }
-    unsigned char *hash = create_hash(path);
-    item->hash = hash;
-    char **files = (char **)malloc(sizeof(char*));
+    char **files = malloc(1 * sizeof(char *));
     if(!files)
     {
         perror("malloc");
         exit(EXIT_FAILURE);
     }
-    files[0] = path;
+    item->hash = hash;
     item->files = files;
+    item->files[0] = path;
     item->idx = 1;
     item->next = NULL;
     return item;
@@ -53,12 +52,13 @@ hashitem *hashtable_lookup(unsigned char *hash)
 
 int hashtable_add_file(char *path)
 {
+    unsigned char *hash = create_hash(path);
     if(!head)
     {
-        head = create_hashitem(path);
+        head = create_hashitem(path, hash);
         return 0;
     }
-    unsigned char *hash = create_hash(path);
+    
     hashitem *item = hashtable_lookup(hash);
     if(item)
     {
@@ -76,7 +76,7 @@ int hashtable_add_file(char *path)
         while(current->next) {
             current = current->next;
         }
-        current->next = create_hashitem(path);
+        current->next = create_hashitem(path, hash);
     }
     return 0;
 
@@ -94,6 +94,7 @@ int hashtable_add_files(char **files, int size)
 int free_hashitem(hashitem *item)
 {
     for(int i = 0; i < item->idx;i++){
+        printf("%d - free %s\n", i, item->files[i]);
         free(item->files[i]);
     }
     free(item->files);
@@ -134,6 +135,7 @@ hashitem *hashtable_get_duplicates(void)
     if(!head)
         return NULL;
     hashtable_remove_uniques();
+
     hashtable_dump();
     return head;
 }
@@ -145,9 +147,9 @@ int hashtable_destroy(void)
     hashitem *current = head;
     while(current)
     {
-        hashitem *item = current;
-        current = current->next;
-        free_hashitem(item);
+        hashitem *next = current->next;
+        free_hashitem(current);
+        current = next;
     }
     return 0;
 }
