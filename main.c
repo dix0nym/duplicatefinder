@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <time.h>
 #include "filelist.h"
 
 #ifndef USE_FDS
@@ -53,9 +54,14 @@ int walk(const char *const dirpath)
 
 int main(int argc, char **argv)
 {
+    clock_t t;
+    t = clock();
     char *dirpath = "/home/nyx/Documents/";
     walk(dirpath);
     check_duplicate();
     filelist_destroy();
+    t = clock() -t;
+    double time_taken = ((double)t)/CLOCKS_PER_SEC;
+    printf("took %f seconds.\n", time_taken);
     return 0;
 }
