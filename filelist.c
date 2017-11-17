@@ -10,15 +10,16 @@ static filelist *head;
 filelist *create_item(long *filesize, char *buf)
 {
     filelist *new = malloc(sizeof(filelist));
-    if(!new) {
+    if(!new)
+    {
         perror("malloc");
         exit(EXIT_FAILURE);
     }
     new->filesize = filesize;
     new->next = NULL;
     char **files = malloc(sizeof(char *));
-    
-    if(!files) {
+    if(!files)
+    {
         perror("malloc");
         exit(EXIT_FAILURE);
     }
@@ -33,7 +34,8 @@ filelist *lookup(long *size)
     if(!head)
         return NULL;
     filelist *current = head;
-    while(current){
+    while(current)
+    {
         if (*current->filesize == *size)
             return current;
         current = current->next;
@@ -44,28 +46,30 @@ filelist *lookup(long *size)
 
 int filelist_add(long *filesize, char *path)
 {
-    if (!head){
-        printf("no head, create one\n");
+    if (!head)
+    {
         head = create_item(filesize, path);
         return 0;
     }
     filelist *np = lookup(filesize);
-    if (!np){
+    if (!np)
+    {
         filelist *current = head;
-        while(current->next) {
+        while(current->next)
             current = current->next;
-        }
         current->next = create_item(filesize, path);
     } else {
         int idx = np->idx;
         char **tmp = realloc(np->files, (idx+ 1) * sizeof(char *));
-        if (!tmp) {
+        if (!tmp)
+        {
             perror("realloc");
             exit(EXIT_FAILURE);
         }
         np->files = tmp;
         np->files[idx] = path;
         np->idx = idx+1;
+        free(filesize);
     }
     return 0;
 }
@@ -82,7 +86,8 @@ int free_item(filelist *item)
 
 filelist *remove_item(filelist *item)
 {
-    if(head == item) {
+    if(head == item)
+    {
         head = item->next;
         free_item(item);
         return head;
@@ -91,31 +96,18 @@ filelist *remove_item(filelist *item)
     while(prev->next != NULL && prev->next != item)
         prev = prev->next;
 
-    if(prev->next == NULL) {
+    if(prev->next == NULL)
         return NULL;
-    }
     prev->next = prev->next->next;
     free_item(item);
     return prev; 
 }
 
-filelist *get_filelist(void)
-{
-    return head;
-}
-
-int remove_uniques(void)
-{
-    filelist *current = head;
-    while(current)
-        current = (current->idx == 1) ? remove_item(current) : current->next;            
-    return 0;
-}
-
 int filelist_destroy(void)
 {
     filelist *current = head;
-    while(current){
+    while(current)
+    {
         filelist *item = current;
         current = current->next;
         free_item(item);
@@ -128,24 +120,25 @@ int check_duplicate(void)
 {
     if(!head)
         return -1;
-    remove_uniques();
-    filelist_dump();
     filelist *current = head;
+    while(current)
+        current = (current->idx == 1) ? remove_item(current) : current->next;
     if (access("log.txt", F_OK) != -1)
         remove("log.txt");
     FILE *file = fopen("log.txt", "a");
     if (!file)
+    {
         perror("file");
+        return -1;
+    }
+    current = head;
     while(current)
     {
         hashtable_add_files(current->files, current->idx);
         hashitem *item = hashtable_get_duplicates();
         while(item)
         {
-            fprintf(file, "(*) hash: ");
-            for(size_t j = 0; j < 64; ++j )
-                fprintf(file, "%02x", item->hash[j]);
-            fprintf(file, " - files: %d\n", item->idx);
+            fprintf(file, "(*) hash: %s - files: %d\n", item->hash, item->idx);
             for(int i = 0; i < item->idx; i++)
                 fprintf(file, "\t[%d] - %s\n", i, item->files[i]);
             fprintf(file, "\n");
@@ -158,29 +151,20 @@ int check_duplicate(void)
     return 0;
 }
 
-int dump_item(filelist *item)
-{
-    if(!item)
-        return -1;
-    printf("filesize: %ld - files: %d - next: %p\n", *item->filesize, item->idx, (void*)item->next);
-    for(int i = 0; i < item->idx;i++) {
-        printf("\t%d : %s\n", i, item->files[i]);
-    }
-    return 0;
-}
-
 int filelist_dump(void)
 {
-    if(!head){
+    if(!head)
+    {
         printf("List is empty\n");
         return -1;
     }
     filelist *current = head;
     int c = 0;
-    while(current){
-        printf("idx: %d - ", c);
-        dump_item(current);
-        c += 1;
+    while(current)
+    {
+        printf("idx: %d - filesize: %ld - files: %d - next: %p\n", c++, *current->filesize, current->idx, (void*)current->next);
+        for(int i = 0; i < current->idx; i++)
+            printf("\t%d : %s\n", i, current->files[i]);
         current = current->next;
     }
     return 0;

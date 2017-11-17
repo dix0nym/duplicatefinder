@@ -17,9 +17,11 @@
 int addtodict(const char *filepath, const struct stat *info,
     const int typeflag, struct FTW *pathinfo)
 {
-    if(typeflag == FTW_F) {
+    if(typeflag == FTW_F)
+    {
         long *size = malloc(sizeof(long));
-        if(!size){
+        if(!size)
+        {
             perror("malloc");
             exit(EXIT_FAILURE);
         }
@@ -28,7 +30,8 @@ int addtodict(const char *filepath, const struct stat *info,
         *size = st.st_size;
 
         char *path = malloc(sizeof(char)*(strlen(filepath) + 1));
-        if(!path){
+        if(!path)
+        {
             perror("malloc");
             exit(EXIT_FAILURE);
         }
@@ -38,14 +41,17 @@ int addtodict(const char *filepath, const struct stat *info,
     return 0;
 }
 
-int walk(const char *const dirpath){
-    if(nftw(dirpath, addtodict, USE_FDS, FTW_PHYS) == -1){
+int walk(const char *const dirpath)
+{
+    if(nftw(dirpath, addtodict, USE_FDS, FTW_PHYS) == -1)
+    {
         perror("nftw");
         exit(EXIT_FAILURE);
     }
     return 0;
 }
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     char *dirpath = "/home/nyx/Documents/";
     walk(dirpath);
     check_duplicate();

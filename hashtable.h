@@ -2,7 +2,7 @@
 #define HASHTABLE_H
 
 typedef struct hashitem {
-    unsigned char *hash;
+    char *hash;
     int idx;
     char **files;
     struct hashitem *next;

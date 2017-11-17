@@ -23,4 +23,4 @@ hashtable: hashtable.c
 		$(CC) -c hashtable.c $(CFLAGS)
 
 clean:
-		rm -rf *.o duplicatefinder hashtest
+		rm -rf *.o duplicatefinder hashtest vgcore.* log.txt

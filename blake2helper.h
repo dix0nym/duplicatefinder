@@ -3,6 +3,6 @@
 
 int blake2b_stream( FILE *stream, void *resstream, size_t outbytes );
 
-unsigned char *create_hash(char *path);
+int create_hash(char *path, char *hash);
 
 #endif

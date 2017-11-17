@@ -1,19 +1,20 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "hashtable.h"
 #include "blake2helper.h"
 
 static hashitem *head;
 
-hashitem *create_hashitem(char *path, unsigned char *hash)
+hashitem *create_hashitem(char *path, char *hash)
 {
-    hashitem *item = malloc(1 * sizeof(hashitem));
+    hashitem *item = malloc(sizeof(hashitem));
     if (!item)
     {
         perror("malloc");
         exit(EXIT_FAILURE);
     }
-    char **files = malloc(1 * sizeof(char *));
+    char **files = malloc(sizeof(char *));
     if(!files)
     {
         perror("malloc");
@@ -27,24 +28,13 @@ hashitem *create_hashitem(char *path, unsigned char *hash)
     return item;
 }
 
-int compare_unsigned_char(unsigned char *a, unsigned char *b, int size)
-{
-    while(size-- > 0) {
-        if ( *a != *b ) { return (*a < *b ) ? -1 : 1; }
-        a++; b++;
-    }
-    return 0;
-}
-
-hashitem *hashtable_lookup(unsigned char *hash)
+hashitem *hashtable_lookup(char *hash)
 {
     hashitem *current = head;
     while(current)
     {
-        if(compare_unsigned_char(current->hash, hash, 64) == 0)
-        {
+        if(strcmp(current->hash, hash) == 0)
             return current;
-        }
         current = current->next;
     }
     return NULL;
@@ -52,7 +42,9 @@ hashitem *hashtable_lookup(unsigned char *hash)
 
 int hashtable_add_file(char *path)
 {
-    unsigned char *hash = create_hash(path);
+    char *hash = malloc(129*sizeof(char));
+    create_hash(path, hash);
+    
     if(!head)
     {
         head = create_hashitem(path, hash);
@@ -62,6 +54,7 @@ int hashtable_add_file(char *path)
     hashitem *item = hashtable_lookup(hash);
     if(item)
     {
+        free(hash);
         char **tmp = realloc(item->files, (item->idx+1) * sizeof(char *));
         if(!tmp)
         {
@@ -70,33 +63,25 @@ int hashtable_add_file(char *path)
         }
         item->files = tmp;
         item->files[item->idx] = path;
-        item->idx += 1; 
+        item->idx += 1;
     } else {
         hashitem *current = head;
-        while(current->next) {
+        while(current->next)
             current = current->next;
-        }
         current->next = create_hashitem(path, hash);
     }
     return 0;
-
 }
 
 int hashtable_add_files(char **files, int size)
 {
     for(int i = 0; i < size; i++)
-    {
         hashtable_add_file(files[i]);
-    }
     return 0;
 }
 
 int free_hashitem(hashitem *item)
 {
-    for(int i = 0; i < item->idx;i++){
-        printf("%d - free %s\n", i, item->files[i]);
-        free(item->files[i]);
-    }
     free(item->files);
     free(item->hash);
     free(item);
@@ -105,7 +90,8 @@ int free_hashitem(hashitem *item)
 
 hashitem *remove_hashitem(hashitem *item)
 {
-    if(head == item) {
+    if(head == item)
+    {
         head = item->next;
         free_hashitem(item);
         return head;
@@ -114,29 +100,20 @@ hashitem *remove_hashitem(hashitem *item)
     while(prev->next != NULL && prev->next != item)
         prev = prev->next;
 
-    if(prev->next == NULL) {
+    if(prev->next == NULL)
         return NULL;
-    }
     prev->next = prev->next->next;
     free_hashitem(item);
     return prev; 
-}
-
-int hashtable_remove_uniques(void)
-{
-    hashitem *current = head;
-    while(current)
-        current = (current->idx == 1) ? remove_hashitem(current) : current->next;
-    return 0;
 }
 
 hashitem *hashtable_get_duplicates(void)
 {
     if(!head)
         return NULL;
-    hashtable_remove_uniques();
-
-    hashtable_dump();
+    hashitem *current = head;
+    while(current)
+        current = (current->idx == 1) ? remove_hashitem(current) : current->next;
     return head;
 }
 
@@ -151,6 +128,7 @@ int hashtable_destroy(void)
         free_hashitem(current);
         current = next;
     }
+    head = NULL;
     return 0;
 }
 
@@ -164,14 +142,10 @@ int hashtable_dump(void)
     hashitem *current = head;
     while(current)
     {
-        for(size_t j = 0; j < 64; ++j )
-            printf( "%02x", current->hash[j] );
-        printf(" - size: %d - next: %p\n", current->idx, (void *)current->next);
+        printf("hash: %s - size: %d - next: %p\n", current->hash, current->idx, (void *)current->next);
         int count = 0;
-        for(int i = 0; i < current->idx; i++) {
-            printf("\t%d - %s\n", count, current->files[i]);
-            count++;
-        }
+        for(int i = 0; i < current->idx; i++)
+            printf("\t%d - %s\n", count++, current->files[i]);
         current = current->next;
     }
     return 0;
