@@ -120,17 +120,21 @@ int check_duplicate(void)
 {
     if(!head)
         return -1;
+    
     filelist *current = head;
     while(current)
         current = (current->idx == 1) ? remove_item(current) : current->next;
+    
     if (access("log.txt", F_OK) != -1)
         remove("log.txt");
+    
     FILE *file = fopen("log.txt", "a");
     if (!file)
     {
         perror("file");
         return -1;
     }
+    
     current = head;
     while(current)
     {
@@ -144,6 +148,7 @@ int check_duplicate(void)
             fprintf(file, "\n");
             item = item->next;
         }
+        hashtable_dump();
         hashtable_destroy();
         current = current->next;
     }
