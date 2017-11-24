@@ -148,7 +148,8 @@ int check_duplicate(void)
             fprintf(file, "\n");
             item = item->next;
         }
-        hashtable_dump();
+        if (!hashtable_isEmpty())
+            hashtable_dump();
         hashtable_destroy();
         current = current->next;
     }

@@ -15,6 +15,7 @@
 #define USE_FDS 15
 #endif
 
+
 int addtodict(const char *filepath, const struct stat *info,
     const int typeflag, struct FTW *pathinfo)
 {
@@ -56,7 +57,7 @@ int main(int argc, char **argv)
 {
     clock_t t;
     t = clock();
-    char *dirpath = "/home/nyx/Documents/";
+    char *dirpath = "/home/rias/Downloads/";
     walk(dirpath);
     check_duplicate();
     filelist_destroy();

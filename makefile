@@ -1,11 +1,11 @@
 CC=gcc
-CFLAGS=-Wall -pedantic
+CFLAGS=-Wall -pedantic -lcrypto
 .PHONY: all clean
 
 all: duplicatefinder
 
-duplicatefinder: main.o filelist.o blake2helper.c blake2b.o hashtable.o
-		$(CC) main.o filelist.o blake2helper.c blake2b.o hashtable.o $(CFLAGS) -o duplicatefinder
+duplicatefinder: main.o filelist.o blake2b.o hashtable.o
+		$(CC) main.o filelist.o hashtable.o blake2b.o $(CFLAGS) -o duplicatefinder
 
 main.o: main.c
 		$(CC) -c main.c $(CFLAGS)

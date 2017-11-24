@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "hashtable.h"
-#include "blake2helper.h"
+#include "blake2/blake2.h"
 
 static hashitem *head;
 
@@ -40,10 +40,55 @@ hashitem *hashtable_lookup(char *hash)
     return NULL;
 }
 
+int create_hash(char *path, char *hash_string)
+{
+    FILE *file = fopen(path, "rb");
+    if (!file) return -1;
+    unsigned char hash[SHA256_DIGEST_LENGTH];
+    SHA256_CTX sha256;
+    SHA256_Init(&sha256);
+    const int bufSize = 32768;
+    char* buffer = malloc(bufSize);
+    int bytesRead = 0;
+    if(!buffer) return -1;
+    while((bytesRead = fread(buffer, 1, bufSize, file)))
+        SHA256_Update(&sha256, buffer, bytesRead);
+    SHA256_Final(hash, &sha256);
+
+    for(unsigned int i = 0; i < SHA256_DIGEST_LENGTH; i++)
+        sprintf(hash_string + (i * 2), "%02x", hash[i]);
+    hash_string[64] = 0;
+    fclose(file);
+    free(buffer);
+    return 0;
+}
+
+int create_blake2b_hash(char *path, char *hash_string)
+{
+    FILE *file = fopen(path, "rb");
+    if (!file) return -1;
+    unsigned char hash[BLAKE2B_OUTBYTES];
+    blake2b_state S; //s[1];
+    blake2b_init(&S, BLAKE2B_OUTBYTES);
+    const int bufSize = 32768;
+    char* buffer = malloc(bufSize);
+    int bytesRead = 0;
+    if(!buffer) return -1;
+    while((bytesRead = fread(buffer, 1, bufSize, file)))
+        blake2b_update(&S, buffer, bytesRead);
+    blake2b_final(&S, hash, BLAKE2B_OUTBYTES);
+    fclose(file);
+    free(buffer);
+    for(unsigned int i = 0; i < BLAKE2B_OUTBYTES; i++)
+        sprintf(hash_string + (i * 2), "%02x", hash[i]);
+    hash_string[64] = 0;
+    return 0;
+}
+
 int hashtable_add_file(char *path)
 {
-    char *hash = malloc(129*sizeof(char));
-    create_hash(path, hash);
+    char *hash = malloc(65*sizeof(char));
+    create_blake2b_hash(path, hash);
     
     if(!head)
     {
@@ -132,11 +177,16 @@ int hashtable_destroy(void)
     return 0;
 }
 
+int hashtable_isEmpty(void)
+{
+    return !head;
+}
+
 int hashtable_dump(void)
 {
     if(!head)
     {
-        printf("hashitem is empty\n");
+        printf("hashtable is empty\n");
         return -1;
     }
     hashitem *current = head;
