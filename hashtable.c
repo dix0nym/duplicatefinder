@@ -40,28 +40,6 @@ hashitem *hashtable_lookup(char *hash)
     return NULL;
 }
 
-int create_hash(char *path, char *hash_string)
-{
-    FILE *file = fopen(path, "rb");
-    if (!file) return -1;
-    unsigned char hash[SHA256_DIGEST_LENGTH];
-    SHA256_CTX sha256;
-    SHA256_Init(&sha256);
-    const int bufSize = 32768;
-    char* buffer = malloc(bufSize);
-    int bytesRead = 0;
-    if(!buffer) return -1;
-    while((bytesRead = fread(buffer, 1, bufSize, file)))
-        SHA256_Update(&sha256, buffer, bytesRead);
-    SHA256_Final(hash, &sha256);
-
-    for(unsigned int i = 0; i < SHA256_DIGEST_LENGTH; i++)
-        sprintf(hash_string + (i * 2), "%02x", hash[i]);
-    hash_string[64] = 0;
-    fclose(file);
-    free(buffer);
-    return 0;
-}
 
 int create_blake2b_hash(char *path, char *hash_string)
 {
@@ -80,22 +58,21 @@ int create_blake2b_hash(char *path, char *hash_string)
     fclose(file);
     free(buffer);
     for(unsigned int i = 0; i < BLAKE2B_OUTBYTES; i++)
-        sprintf(hash_string + (i * 2), "%02x", hash[i]);
-    hash_string[64] = 0;
+        hash_string = sprintf(hash_string, "%02X", hash[i]);
     return 0;
 }
 
 int hashtable_add_file(char *path)
 {
-    char *hash = malloc(65*sizeof(char));
+    char *hash = malloc(BLAKE2B_OUTBYTES * 2 * sizeof(char) + 1);
     create_blake2b_hash(path, hash);
-    
+
     if(!head)
     {
         head = create_hashitem(path, hash);
         return 0;
     }
-    
+
     hashitem *item = hashtable_lookup(hash);
     if(item)
     {
@@ -149,7 +126,7 @@ hashitem *remove_hashitem(hashitem *item)
         return NULL;
     prev->next = prev->next->next;
     free_hashitem(item);
-    return prev; 
+    return prev;
 }
 
 hashitem *hashtable_get_duplicates(void)
@@ -192,7 +169,7 @@ int hashtable_dump(void)
     hashitem *current = head;
     while(current)
     {
-        printf("hash: %s - size: %d - next: %p\n", current->hash, current->idx, (void *)current->next);
+        printf("hash: %s - size: %d\n", current->hash, current->idx);
         int count = 0;
         for(int i = 0; i < current->idx; i++)
             printf("\t%d - %s\n", count++, current->files[i]);
