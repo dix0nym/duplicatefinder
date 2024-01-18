@@ -58,7 +58,7 @@ int create_blake2b_hash(char *path, char *hash_string)
     fclose(file);
     free(buffer);
     for(unsigned int i = 0; i < BLAKE2B_OUTBYTES; i++)
-        hash_string = sprintf(hash_string, "%02X", hash[i]);
+        hash_string += sprintf(hash_string, "%02X", hash[i]);
     return 0;
 }
 

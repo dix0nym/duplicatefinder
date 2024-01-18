@@ -10,12 +10,7 @@ typedef struct hashitem {
     struct hashitem *next;
 } hashitem;
 
-
-int SHA256_Init(SHA256_CTX *c);
-int SHA256_Update(SHA256_CTX *c, const void *data, size_t len);
-int SHA256_Final(unsigned char *md, SHA256_CTX *c);
-unsigned char *SHA256(const unsigned char *d, size_t n,
-                    unsigned char *md);
+int create_blake2b_hash(char *path, char *hash_string);
 
 int hashtable_add_files(char **files, int size);
 
